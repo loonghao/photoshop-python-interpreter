@@ -1,0 +1,2 @@
+# for site-packages
+PySide6
