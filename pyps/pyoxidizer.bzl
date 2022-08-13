@@ -128,6 +128,9 @@ def make_exe():
     # a value, it will be expanded to the directory of the built executable.
     python_config.module_search_paths = ["$ORIGIN/lib", "$ORIGIN/lib/site-packages"]
 
+    # Whether argv should be parsed the way python parses them.
+    python_config.parse_argv = True
+
     # Use jemalloc as Python's memory allocator.
     # python_config.allocator_backend = "jemalloc"
 
