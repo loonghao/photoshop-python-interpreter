@@ -23,17 +23,6 @@ runs:
         components: clippy
 
     - uses: taiki-e/install-action@nextest
-
-    - name: Bootstrap Environment (Linux)
-      if: runner.os == 'Linux'
-      shell: bash
-      run: |
-        just actions-bootstrap-rust-linux
-    - name: Bootstrap Environment (macOS)
-      if: runner.os == 'macOS'
-      shell: bash
-      run: |
-        just actions-bootstrap-rust-macos
     - name: Bootstrap Environment (Windows)
       if: runner.os == 'Windows'
       shell: pwsh
