@@ -1,0 +1,71 @@
+name: Build a binary
+
+on:
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        target:
+          - os: 'windows-2022'
+            triple: 'i686-pc-windows-msvc'
+          - os: 'windows-2022'
+            triple: 'x86_64-pc-windows-msvc'
+    runs-on: ${{ matrix.target.os }}
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - uses: ./.github/actions/rust-bootstrap
+        with:
+          rust_toolchain: stable
+          rust_target: ${{ matrix.target.triple }}
+
+      - uses: actions-rs/install@v0.1
+        if: matrix.target.cross
+        with:
+          crate: cross
+          version: latest
+
+      - name: Build
+        shell: bash
+        run: |
+          if [ "${{ matrix.target.triple }}" = "aarch64-apple-darwin" ]; then
+            export MACOSX_DEPLOYMENT_TARGET=11.0
+          elif [ "${{ matrix.target.triple }}" = "x86_64-apple-darwin" ]; then
+            export MACOSX_DEPLOYMENT_TARGET=10.9
+          fi
+          if [ -n "${{ matrix.target.cross }}" ]; then
+            CARGO=cross
+          else
+            CARGO=cargo
+          fi
+          case "${{ matrix.target.triple }}" in
+            *linux*)
+              EXTRA_BUILD_ARGS=${{ inputs.extra_build_args_linux }}
+              ;;
+            *apple-darwin*)
+              EXTRA_BUILD_ARGS=${{ inputs.extra_build_args_macos }}
+              ;;
+            *windows*)
+              EXTRA_BUILD_ARGS=${{ inputs.extra_build_args_windows }}
+              ;;
+            *)
+              ;;
+          esac
+          $CARGO build --release --bin ${{ inputs.bin }} --target ${{ matrix.target.triple }} ${EXTRA_BUILD_ARGS}
+          mkdir upload
+          cp target/${{ matrix.target.triple }}/release/${{ inputs.bin }}* upload/
+          sccache --stop-server
+
+      - name: Upload (Windows)
+        if: runner.os == 'Windows'
+        uses: actions/upload-artifact@v3
+        with:
+          name: exe-${{ inputs.bin }}-${{ matrix.target.triple }}
+          path: upload/${{ inputs.bin }}.exe
