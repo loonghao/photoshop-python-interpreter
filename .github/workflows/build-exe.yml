@@ -65,7 +65,7 @@ jobs:
 
       - name: Upload (Windows)
         if: runner.os == 'Windows'
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: exe-${{ inputs.bin }}-${{ matrix.target.triple }}
           path: upload/${{ inputs.bin }}.exe
